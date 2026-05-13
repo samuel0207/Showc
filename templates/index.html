@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Battle Simulator - Multiplayer LAN</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <div class="game-container">
+
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen" class="screen active">
+            <div class="lobby-header">
+                <h2>PokeX1</h2>
+                <p id="auth-subtitle">Faça login na sua conta</p>
+            </div>
+            
+            <!-- LOGIN FORM -->
+            <div class="login-box" id="login-form">
+                <input type="text" id="login-username" placeholder="Usuário" autocomplete="off">
+                <input type="password" id="login-password" placeholder="Senha">
+                <button id="login-btn" class="main-btn">Entrar</button>
+                <div id="login-error" class="error-msg"></div>
+                <p class="toggle-auth">Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a></p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div class="login-box" id="register-form" style="display:none;">
+                <input type="text" id="register-username" placeholder="Novo Usuário" autocomplete="off">
+                <input type="email" id="register-email" placeholder="Seu E-mail">
+                <input type="password" id="register-password" placeholder="Senha">
+                <button id="register-btn" class="main-btn">Criar Conta</button>
+                <div id="register-error" class="error-msg"></div>
+                <p class="toggle-auth">Já tem uma conta? <a href="#" id="show-login">Faça Login</a></p>
+            </div>
+        </div>
+
+        <!-- LOBBY SCREEN -->
+        <div id="lobby-screen" class="screen">
+            <div class="lobby-layout">
+                <div class="lobby-main">
+                    <div class="lobby-header">
+                        <h2>Lobby de Batalha</h2>
+                        <div class="score-display">
+                            <span id="logged-user"></span> | Pontos: <span id="player-score">1000</span>
+                        </div>
+                        <div class="header-actions">
+                            <button id="btn-profile" class="secondary-btn">Meu Perfil</button>
+                            <button id="btn-admin" class="secondary-btn"
+                                style="display:none; background:#e3350d;">Admin</button>
+                            <button id="btn-logout" class="secondary-btn">Sair</button>
+                        </div>
+                    </div>
+
+                    <div class="team-builder">
+                        <h3>Seu Time (Até 6)</h3>
+                        <div class="team-slots" id="team-slots">
+                            <div class="slot empty" data-index="0"></div>
+                            <div class="slot empty" data-index="1"></div>
+                            <div class="slot empty" data-index="2"></div>
+                            <div class="slot empty" data-index="3"></div>
+                            <div class="slot empty" data-index="4"></div>
+                            <div class="slot empty" data-index="5"></div>
+                        </div>
+                        <button id="save-team-btn" class="secondary-btn">Salvar Time</button>
+
+                        <div class="pokedex-container" style="height:150px; margin-top: 10px;">
+                            <div id="pokedex-grid" class="pokedex-grid">
+                                <div class="loading-text">Carregando Pokédex...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="find-match-btn" class="main-btn">Procurar Partida Online</button>
+                </div>
+
+                <div class="lobby-sidebar">
+                    <h3>Placar Global</h3>
+                    <ul id="leaderboard-list">
+                        <li>Carregando...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- BATTLE SCREEN -->
+        <div id="battle-screen" class="screen">
+            <div class="arena">
+                <div class="pokemon-container opponent">
+                    <div class="status-box">
+                        <div class="info">
+                            <span id="opp-name">CARREGANDO</span>
+                            <span id="opp-level">Lv50</span>
+                        </div>
+                        <div class="hp-bar-container">
+                            <div id="opp-hp-bar" class="hp-bar green"></div>
+                        </div>
+                        <div id="opp-stat-indicators" class="stat-indicators"></div>
+                        <div id="opp-team-status" class="team-status-dots"></div>
+                    </div>
+                    <div class="sprite-box">
+                        <img id="opp-sprite" src="" class="sprite opponent-sprite">
+                        <div id="opp-damage-container" class="damage-container"></div>
+                    </div>
+                </div>
+
+                <div class="pokemon-container player">
+                    <div class="sprite-box">
+                        <img id="player-sprite" src="" class="sprite player-sprite">
+                        <div id="player-damage-container" class="damage-container"></div>
+                    </div>
+                    <div class="status-box">
+                        <div class="info">
+                            <span id="player-name">CARREGANDO</span>
+                            <span id="player-level">Lv50</span>
+                        </div>
+                        <div class="hp-bar-container">
+                            <div id="player-hp-bar" class="hp-bar green"></div>
+                        </div>
+                        <div class="hp-text"><span id="player-hp-text">--/--</span></div>
+                        <div id="player-stat-indicators" class="stat-indicators"></div>
+                        <div id="player-team-status" class="team-status-dots"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-panel">
+                <div class="console-log" id="console-log">Aguardando...</div>
+                <div class="commands-grid" id="commands-grid">
+                    <button class="move-btn" disabled>---</button>
+                    <button class="move-btn" disabled>---</button>
+                    <button class="move-btn" disabled>---</button>
+                    <button class="move-btn" disabled>---</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS OVERLAY -->
+        <div id="result-screen" class="screen overlay">
+            <div class="result-box">
+                <h1 id="result-title">Vitória!</h1>
+                <p id="result-points">+15 Pontos</p>
+                <button id="btn-back-lobby" class="main-btn">Voltar ao Lobby</button>
+            </div>
+        </div>
+
+        <!-- PROFILE MODAL -->
+        <div id="profile-modal" class="screen overlay">
+            <div class="modal-box">
+                <h2>Seu Perfil</h2>
+                <div class="profile-layout">
+                    <div class="profile-section">
+                        <h3>Últimas Partidas</h3>
+                        <ul id="profile-history"></ul>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Mais Usados</h3>
+                        <ul id="profile-usage"></ul>
+                    </div>
+                </div>
+                <button id="btn-close-profile" class="secondary-btn"
+                    style="margin-top:15px; width:100%;">Fechar</button>
+            </div>
+        </div>
+
+        <!-- ADMIN MODAL -->
+        <div id="admin-modal" class="screen overlay">
+            <div class="modal-box" style="width:500px;">
+                <h2>Painel Administrador</h2>
+                <ul id="admin-user-list" class="admin-list"></ul>
+                <button id="btn-close-admin" class="secondary-btn" style="margin-top:15px; width:100%;">Fechar
+                    Painel</button>
+            </div>
+        </div>
+
+        <!-- VERIFICATION MODAL -->
+        <div id="verify-modal" class="screen overlay">
+            <div class="modal-box" style="text-align: center;">
+                <h2>Verificação Necessária</h2>
+                <p id="verify-msg">Enviamos um código para o seu e-mail.</p>
+                <input type="text" id="verify-code-input" placeholder="Código de 6 dígitos" style="width:80%; margin: 15px auto; text-align:center; letter-spacing: 5px; font-size:1.2em;">
+                <button id="verify-btn" class="main-btn" style="width:80%;">Confirmar</button>
+                <div id="verify-error" class="error-msg" style="margin-top:10px;"></div>
+                <button id="btn-close-verify" class="secondary-btn" style="margin-top:15px; width:80%;">Cancelar</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/battle.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

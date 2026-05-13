@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+database.json
+.directory
+poke_backup.zip
+test_supabase.py
