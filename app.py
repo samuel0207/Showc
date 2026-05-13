@@ -1,5 +1,5 @@
-import eventlet
-eventlet.monkey_patch()
+from gevent import monkey
+monkey.patch_all()
 
 import os
 import random
@@ -10,7 +10,7 @@ from supabase import create_client, Client
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['SECRET_KEY'] = 'pokemon-secret-123!'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 # --- SUPABASE SETUP ---
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://ayfbuxpttvsjhqfebrvt.supabase.co")
