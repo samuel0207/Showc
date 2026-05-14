@@ -654,6 +654,7 @@ body {
     body {
         padding: 0;
         margin: 0;
+        background: #304050; /* Previne fundo branco no overscroll do iOS/Android */
     }
     
     .game-container {
@@ -662,6 +663,12 @@ body {
         border-radius: 0;
         box-shadow: none;
         border: none;
+        background-color: #304050;
+    }
+
+    .slot {
+        width: 40px;
+        height: 40px;
     }
 
     .lobby-header h2 {
