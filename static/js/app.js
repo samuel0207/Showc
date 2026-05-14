@@ -578,9 +578,8 @@ async function handleFaint(faintedSide) {
             setupPokemonUI(oppTeam[oppActiveIdx], 'opponent', oppTeam);
             await sleep(1000);
         } else {
-            // Se eu percebo que ele morreu todo, eu espero ele dizer 'loss' ou eu digo 'win'.
-            // Para não haver race condition, apenas quem PERDE envia o end_game!
             logMsg("Você venceu a batalha! Aguardando servidor...");
+            socket.emit('end_game', {room: currentRoom, result: 'win'});
         }
     }
 }
