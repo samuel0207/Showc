@@ -92,6 +92,7 @@ const dom = {
     teamSlots: document.getElementById('team-slots').children,
     saveTeamBtn: document.getElementById('save-team-btn'),
     findMatchBtn: document.getElementById('find-match-btn'),
+    cancelMatchBtn: document.getElementById('cancel-match-btn'),
     
     log: document.getElementById('console-log'),
     commands: document.getElementById('commands-grid'),
@@ -353,10 +354,18 @@ socket.on('team_saved', (data) => {
 let matchTimer = null;
 let matchSeconds = 0;
 
+function resetMatchUI() {
+    clearInterval(matchTimer);
+    dom.findMatchBtn.innerText = "Procurar Partida Online";
+    dom.findMatchBtn.disabled = false;
+    dom.cancelMatchBtn.style.display = 'none';
+}
+
 dom.findMatchBtn.onclick = () => {
     matchSeconds = 0;
     dom.findMatchBtn.innerText = "Buscando oponente... (00:00)";
     dom.findMatchBtn.disabled = true;
+    dom.cancelMatchBtn.style.display = 'block';
     
     matchTimer = setInterval(() => {
         matchSeconds++;
@@ -368,11 +377,14 @@ dom.findMatchBtn.onclick = () => {
     socket.emit('find_match');
 };
 
+dom.cancelMatchBtn.onclick = () => {
+    socket.emit('cancel_match');
+    resetMatchUI();
+};
+
 socket.on('match_error', data => {
-    clearInterval(matchTimer);
+    resetMatchUI();
     alert(data.msg);
-    dom.findMatchBtn.innerText = "Procurar Partida Online";
-    dom.findMatchBtn.disabled = false;
 });
 
 socket.on('online_count_update', data => {
@@ -394,9 +406,7 @@ async function buildTeam(ids) {
 }
 
 socket.on('match_found', async (data) => {
-    clearInterval(matchTimer);
-    dom.findMatchBtn.innerText = "Procurar Partida Online";
-    dom.findMatchBtn.disabled = false;
+    resetMatchUI();
 
     currentRoom = data.room;
     isPlayerOne = data.is_player_one;

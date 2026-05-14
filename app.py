@@ -191,6 +191,36 @@ def handle_save_team(data):
     
     emit('team_saved', {'msg': 'Time salvo com sucesso!', 'usage': usage})
 
+@socketio.on('cancel_match')
+def handle_cancel_match():
+    sid = request.sid
+    if sid in waiting_players:
+        waiting_players.remove(sid)
+
+def pair_with_bot(sid, username, team):
+    if sid not in waiting_players: return
+    waiting_players.remove(sid)
+    
+    bot_sid = "BOT_" + str(random.randint(1000, 9999))
+    bot_team = [random.randint(1, 151) for _ in range(6)]
+    room = f"room_{bot_sid}_{sid}"
+    join_room(room, sid=sid)
+    
+    games[room] = {
+        'players': [sid, bot_sid],
+        'turn_actions': {},
+        'is_bot': True,
+        'bot_sid': bot_sid
+    }
+    
+    # Sid receives match found against BOT
+    socketio.emit('match_found', {
+        'room': room,
+        'opponent': 'Bot Trainer',
+        'opponent_team': bot_team,
+        'is_player_one': True
+    }, to=sid)
+
 @socketio.on('find_match')
 def handle_find_match():
     sid = request.sid
@@ -234,6 +264,12 @@ def handle_find_match():
         if sid not in waiting_players:
             waiting_players.append(sid)
         emit('waiting_match')
+        # Schedule bot pairing
+        socketio.start_background_task(wait_and_pair_bot, sid, username, team)
+
+def wait_and_pair_bot(sid, username, team):
+    socketio.sleep(5)
+    pair_with_bot(sid, username, team)
 
 @socketio.on('action')
 def handle_action(data):
@@ -243,9 +279,12 @@ def handle_action(data):
     
     if room not in games: return
     game = games[room]
-    
     game['turn_actions'][sid] = action
     
+    if game.get('is_bot'):
+        bot_sid = game['bot_sid']
+        game['turn_actions'][bot_sid] = {'type': 'attack', 'moveIndex': random.randint(0, 3)}
+
     if len(game['turn_actions']) == 2:
         socketio.emit('turn_ready', game['turn_actions'], to=room)
         game['turn_actions'] = {}
@@ -261,7 +300,7 @@ def handle_end_game(data):
     
     username = sid_to_user.get(sid)
     opp_sid = [s for s in game['players'] if s != sid][0]
-    opp_username = sid_to_user.get(opp_sid)
+    opp_username = 'Bot Trainer' if game.get('is_bot') else sid_to_user.get(opp_sid)
     
     date_str = datetime.now().strftime("%d/%m/%Y %H:%M")
     
@@ -271,7 +310,7 @@ def handle_end_game(data):
     points_win = 15
     points_loss = -10
     
-    winner_user = get_user(winner_name)
+    winner_user = get_user(winner_name) if winner_name != 'Bot Trainer' else None
     if winner_user:
         winner_user['score'] = winner_user.get('score', 1000) + points_win
         hist = winner_user.get('history', [])
@@ -282,7 +321,7 @@ def handle_end_game(data):
         except Exception as e:
             print(f"[ERRO] Falha ao atualizar vencedor: {e}")
         
-    loser_user = get_user(loser_name)
+    loser_user = get_user(loser_name) if loser_name != 'Bot Trainer' else None
     if loser_user:
         loser_user['score'] = max(0, loser_user.get('score', 1000) + points_loss)
         hist = loser_user.get('history', [])
