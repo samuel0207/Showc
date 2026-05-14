@@ -93,6 +93,7 @@ const dom = {
     saveTeamBtn: document.getElementById('save-team-btn'),
     findMatchBtn: document.getElementById('find-match-btn'),
     cancelMatchBtn: document.getElementById('cancel-match-btn'),
+    surrenderBtn: document.getElementById('surrender-btn'),
     
     log: document.getElementById('console-log'),
     commands: document.getElementById('commands-grid'),
@@ -407,6 +408,7 @@ async function buildTeam(ids) {
 
 socket.on('match_found', async (data) => {
     resetMatchUI();
+    if(dom.surrenderBtn) dom.surrenderBtn.disabled = false;
 
     currentRoom = data.room;
     isPlayerOne = data.is_player_one;
@@ -582,6 +584,14 @@ async function handleFaint(faintedSide) {
         }
     }
 }
+
+dom.surrenderBtn.onclick = () => {
+    if (confirm("Tem certeza que deseja se render? Você perderá pontos!")) {
+        socket.emit('end_game', {room: currentRoom, result: 'loss'});
+        logMsg("Você se rendeu!");
+        dom.surrenderBtn.disabled = true;
+    }
+};
 
 // NOVO: Receber o Game Over global
 socket.on('game_over', (data) => {

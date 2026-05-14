@@ -201,7 +201,8 @@ body {
     position: absolute;
     display: flex;
     align-items: flex-end;
-    width: 300px;
+    width: calc(100% - 80px);
+    justify-content: space-between;
 }
 
 .opponent {
@@ -739,7 +740,9 @@ body {
     }
 
     .console-log {
-        height: 100px;
+        flex: none;
+        height: 120px;
+        max-height: 120px;
         border-right: none;
         border-bottom: 5px solid #202020;
     }
