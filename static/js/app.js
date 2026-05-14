@@ -20,8 +20,6 @@ const movesByType = {
     fairy: [{ name: 'Fairy Wind', power: 40, type: 'fairy', category: 'special' }, { name: 'Dazzling Gleam', power: 80, type: 'fairy', category: 'special' }, { name: 'Play Rough', power: 90, type: 'fairy', category: 'physical' }, { name: 'Moonblast', power: 95, type: 'fairy', category: 'special' }]
 };
 
-};
-
 function generateMovesFor(types) {
     const pickRandom = (arr, count) => [...arr].sort(() => 0.5 - Math.random()).slice(0, count);
     let selectedMoves = [];
