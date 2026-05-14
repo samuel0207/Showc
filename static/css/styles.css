@@ -27,8 +27,8 @@ body {
 }
 
 .game-container {
-    width: 800px;
-    min-height: 550px;
+    width: 960px;
+    min-height: 660px;
     height: auto;
     max-width: 100%;
     background-color: #fff;
@@ -191,7 +191,7 @@ body {
 
 /* ARENA STYLES */
 .arena {
-    height: 400px;
+    height: 480px;
     background: linear-gradient(180deg, #98d8d8 0%, #98d8d8 50%, var(--arena-bg) 50%, var(--arena-bg) 100%);
     position: relative;
     padding: 20px;
@@ -641,4 +641,106 @@ body {
 .admin-list button {
     font-size: 8px;
     padding: 4px;
+}
+
+/* --- RESPONSIVIDADE MOBILE --- */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    
+    .game-container {
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+    }
+
+    .lobby-header h2 {
+        font-size: 16px;
+    }
+
+    .login-box {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .lobby-layout {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .lobby-main {
+        flex: none;
+        width: 100%;
+    }
+
+    .lobby-sidebar {
+        flex: none;
+        width: 95%;
+        margin: 0 auto 20px auto;
+    }
+
+    .arena {
+        height: 350px;
+        padding: 10px;
+    }
+
+    .pokemon-container {
+        width: 250px;
+    }
+
+    .player {
+        left: 10px;
+        bottom: 20px;
+    }
+
+    .opponent {
+        right: 10px;
+        top: 20px;
+    }
+
+    .sprite-box {
+        width: 100px;
+        height: 100px;
+    }
+
+    .sprite {
+        transform: scale(1.5);
+    }
+
+    .status-box {
+        width: 180px;
+        padding: 8px;
+    }
+
+    .info {
+        font-size: 10px;
+    }
+
+    .ui-panel {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .console-log {
+        height: 100px;
+        border-right: none;
+        border-bottom: 5px solid #202020;
+    }
+
+    .commands-grid {
+        height: 150px;
+    }
+    
+    .pokedex-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+    
+    .pokedex-card img {
+        width: 40px;
+        height: 40px;
+    }
 }
