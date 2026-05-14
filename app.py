@@ -33,7 +33,8 @@ def get_leaderboard():
     return res.data
 
 def broadcast_online_count():
-    socketio.emit('online_count_update', {'count': len(sid_to_user)})
+    players = [{'username': u, 'sid': s} for s, u in sid_to_user.items()]
+    socketio.emit('online_count_update', {'count': len(sid_to_user), 'players': players})
 
 # --- ROUTES & SOCKETS ---
 @app.route('/')
@@ -343,6 +344,61 @@ def handle_end_game(data):
     
     socketio.emit('leaderboard_update', get_leaderboard())
     del games[room]
+
+@socketio.on('send_challenge')
+def handle_send_challenge(data):
+    target_sid = data.get('target_sid')
+    challenger_sid = request.sid
+    challenger_name = sid_to_user.get(challenger_sid)
+    
+    if target_sid in sid_to_user:
+        socketio.emit('receive_challenge', {
+            'challenger_name': challenger_name,
+            'challenger_sid': challenger_sid
+        }, to=target_sid)
+
+@socketio.on('decline_challenge')
+def handle_decline_challenge(data):
+    challenger_sid = data.get('challenger_sid')
+    target_name = sid_to_user.get(request.sid)
+    socketio.emit('challenge_declined', {'msg': f'{target_name} recusou seu desafio.'}, to=challenger_sid)
+
+@socketio.on('accept_challenge')
+def handle_accept_challenge(data):
+    challenger_sid = data.get('challenger_sid')
+    target_sid = request.sid
+    
+    if challenger_sid not in sid_to_user or target_sid not in sid_to_user:
+        return
+        
+    challenger_name = sid_to_user.get(challenger_sid)
+    target_name = sid_to_user.get(target_sid)
+    
+    if challenger_sid in waiting_players: waiting_players.remove(challenger_sid)
+    if target_sid in waiting_players: waiting_players.remove(target_sid)
+    
+    room = f"room_{challenger_sid}_{target_sid}"
+    games[room] = {
+        'players': [challenger_sid, target_sid],
+        'turn_actions': {}
+    }
+    
+    challenger_user = get_user(challenger_name)
+    target_user = get_user(target_name)
+    
+    socketio.emit('match_found', {
+        'room': room,
+        'opponent': target_name,
+        'opponent_team': target_user.get('team', []),
+        'is_player_one': True
+    }, to=challenger_sid)
+    
+    socketio.emit('match_found', {
+        'room': room,
+        'opponent': challenger_name,
+        'opponent_team': challenger_user.get('team', []),
+        'is_player_one': False
+    }, to=target_sid)
 
 @socketio.on('disconnect')
 def handle_disconnect():

@@ -1,3 +1,11 @@
+const battleBackgrounds = [
+    '/static/backgrounds/d8594wx-7e7c2d69-c3ae-4f6f-b4c8-5bf8dab494d1.png',
+    '/static/backgrounds/or_as_battle_background_1b_by_phoenixoflight92_d874gjl-414w-2x.jpg',
+    '/static/backgrounds/or_as_city_battle_background_by_phoenixoflight92_d8a3n8m-414w-2x.jpg',
+    '/static/backgrounds/or_as_vs_elite_four_glacia_battle_background_by_phoenixoflight92_d8978d8-414w-2x.jpg',
+    '/static/backgrounds/pokemon_x_and_y_battle_background_10_by_phoenixoflight92_d843fov-414w-2x.jpg'
+];
+
 // --- Dicionário de Golpes ---
 const movesByType = {
     normal: [{ name: 'Tackle', power: 40, type: 'normal', category: 'physical' }, { name: 'Quick Attack', power: 40, type: 'normal', category: 'physical' }, { name: 'Body Slam', power: 85, type: 'normal', category: 'physical' }, { name: 'Hyper Voice', power: 90, type: 'normal', category: 'special' }],
@@ -87,6 +95,7 @@ const dom = {
     scoreDisplay: document.getElementById('player-score'),
     loggedUser: document.getElementById('logged-user'),
     leaderboardList: document.getElementById('leaderboard-list'),
+    onlinePlayersList: document.getElementById('online-players-list'),
     
     pokedexGrid: document.getElementById('pokedex-grid'),
     teamSlots: document.getElementById('team-slots').children,
@@ -389,9 +398,56 @@ socket.on('match_error', data => {
 });
 
 socket.on('online_count_update', data => {
-    if(dom.onlineCount) {
-        dom.onlineCount.innerText = `🟢 Online: ${data.count}`;
+    if(dom.onlineCount) dom.onlineCount.innerText = `🟢 Online: ${data.count}`;
+    
+    if(dom.onlinePlayersList) {
+        dom.onlinePlayersList.innerHTML = '';
+        if(!data.players || data.players.length === 0) {
+            dom.onlinePlayersList.innerHTML = '<li style="padding: 5px 0;">Ninguém online</li>';
+            return;
+        }
+        
+        data.players.forEach(p => {
+            const li = document.createElement('li');
+            li.style.padding = '5px 0';
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.alignItems = 'center';
+            li.style.borderBottom = '1px solid #444';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = p.username;
+            li.appendChild(nameSpan);
+            
+            if(p.username !== username) {
+                const btn = document.createElement('button');
+                btn.innerText = 'Desafiar';
+                btn.className = 'secondary-btn';
+                btn.style.padding = '2px 8px';
+                btn.style.fontSize = '10px';
+                btn.onclick = () => {
+                    socket.emit('send_challenge', {target_sid: p.sid});
+                    btn.innerText = 'Enviado...';
+                    btn.disabled = true;
+                };
+                li.appendChild(btn);
+            }
+            dom.onlinePlayersList.appendChild(li);
+        });
     }
+});
+
+socket.on('receive_challenge', data => {
+    if(confirm(`O jogador ${data.challenger_name} te desafiou para uma batalha! Aceitar?`)) {
+        socket.emit('accept_challenge', {challenger_sid: data.challenger_sid});
+    } else {
+        socket.emit('decline_challenge', {challenger_sid: data.challenger_sid});
+    }
+});
+
+socket.on('challenge_declined', data => {
+    alert(data.msg);
+    // Could refresh the list to reset the buttons, but next online_count_update will do it
 });
 
 // --- BATTLE PREP ---
@@ -409,6 +465,14 @@ async function buildTeam(ids) {
 socket.on('match_found', async (data) => {
     resetMatchUI();
     if(dom.surrenderBtn) dom.surrenderBtn.disabled = false;
+    
+    const randomBg = battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)];
+    const arenaElement = document.querySelector('.arena');
+    if (arenaElement) {
+        arenaElement.style.backgroundImage = `url('${randomBg}')`;
+        arenaElement.style.backgroundSize = 'cover';
+        arenaElement.style.backgroundPosition = 'center bottom';
+    }
 
     currentRoom = data.room;
     isPlayerOne = data.is_player_one;
