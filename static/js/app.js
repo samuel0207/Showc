@@ -20,6 +20,8 @@ const movesByType = {
     fairy: [{ name: 'Fairy Wind', power: 40, type: 'fairy', category: 'special' }, { name: 'Dazzling Gleam', power: 80, type: 'fairy', category: 'special' }, { name: 'Play Rough', power: 90, type: 'fairy', category: 'physical' }, { name: 'Moonblast', power: 95, type: 'fairy', category: 'special' }]
 };
 
+};
+
 function generateMovesFor(types) {
     const pickRandom = (arr, count) => [...arr].sort(() => 0.5 - Math.random()).slice(0, count);
     let selectedMoves = [];
@@ -81,8 +83,8 @@ const dom = {
     
     showRegisterBtn: document.getElementById('show-register'),
     showLoginBtn: document.getElementById('show-login'),
-    
-    
+    onlineCount: document.getElementById('online-count'),
+
 
     scoreDisplay: document.getElementById('player-score'),
     loggedUser: document.getElementById('logged-user'),
@@ -350,16 +352,35 @@ socket.on('team_saved', (data) => {
     if(data.usage) userUsage = data.usage;
 });
 
+let matchTimer = null;
+let matchSeconds = 0;
+
 dom.findMatchBtn.onclick = () => {
-    dom.findMatchBtn.innerText = "Buscando oponente...";
+    matchSeconds = 0;
+    dom.findMatchBtn.innerText = "Buscando oponente... (00:00)";
     dom.findMatchBtn.disabled = true;
+    
+    matchTimer = setInterval(() => {
+        matchSeconds++;
+        let m = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
+        let s = String(matchSeconds % 60).padStart(2, '0');
+        dom.findMatchBtn.innerText = `Buscando oponente... (${m}:${s})`;
+    }, 1000);
+    
     socket.emit('find_match');
 };
 
 socket.on('match_error', data => {
+    clearInterval(matchTimer);
     alert(data.msg);
     dom.findMatchBtn.innerText = "Procurar Partida Online";
     dom.findMatchBtn.disabled = false;
+});
+
+socket.on('online_count_update', data => {
+    if(dom.onlineCount) {
+        dom.onlineCount.innerText = `🟢 Online: ${data.count}`;
+    }
 });
 
 // --- BATTLE PREP ---
@@ -375,6 +396,10 @@ async function buildTeam(ids) {
 }
 
 socket.on('match_found', async (data) => {
+    clearInterval(matchTimer);
+    dom.findMatchBtn.innerText = "Procurar Partida Online";
+    dom.findMatchBtn.disabled = false;
+
     currentRoom = data.room;
     isPlayerOne = data.is_player_one;
     

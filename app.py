@@ -32,6 +32,9 @@ def get_leaderboard():
     res = supabase.table('users').select('username, score').order('score', desc=True).limit(10).execute()
     return res.data
 
+def broadcast_online_count():
+    socketio.emit('online_count_update', {'count': len(sid_to_user)})
+
 # --- ROUTES & SOCKETS ---
 @app.route('/')
 def index():
@@ -79,6 +82,7 @@ def handle_login(data):
         'is_admin': (username.lower() == 'admin'),
         'leaderboard': get_leaderboard()
     })
+    broadcast_online_count()
 
 @socketio.on('register')
 def handle_register(data):
@@ -122,6 +126,7 @@ def handle_register(data):
         'is_admin': (new_user['username'].lower() == 'admin'),
         'leaderboard': get_leaderboard()
     })
+    broadcast_online_count()
 
 @socketio.on('get_admin_data')
 def get_admin_data():
@@ -309,6 +314,7 @@ def handle_disconnect():
             
     if sid in sid_to_user:
         del sid_to_user[sid]
+        broadcast_online_count()
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
