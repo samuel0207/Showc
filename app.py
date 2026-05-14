@@ -204,7 +204,6 @@ def pair_with_bot(sid, username, team):
     bot_sid = "BOT_" + str(random.randint(1000, 9999))
     bot_team = [random.randint(1, 151) for _ in range(6)]
     room = f"room_{bot_sid}_{sid}"
-    join_room(room, sid=sid)
     
     games[room] = {
         'players': [sid, bot_sid],
@@ -286,7 +285,9 @@ def handle_action(data):
         game['turn_actions'][bot_sid] = {'type': 'attack', 'moveIndex': random.randint(0, 3)}
 
     if len(game['turn_actions']) == 2:
-        socketio.emit('turn_ready', game['turn_actions'], to=room)
+        for p in game['players']:
+            if not p.startswith('BOT_'):
+                socketio.emit('turn_ready', game['turn_actions'], to=p)
         game['turn_actions'] = {}
 
 @socketio.on('end_game')
@@ -332,11 +333,13 @@ def handle_end_game(data):
         except Exception as e:
             print(f"[ERRO] Falha ao atualizar perdedor: {e}")
     
-    socketio.emit('game_over', {
-        'winner': winner_name,
-        'points_win': points_win,
-        'points_loss': points_loss
-    }, to=room)
+    for p in game['players']:
+        if not p.startswith('BOT_'):
+            socketio.emit('game_over', {
+                'winner': winner_name,
+                'points_win': points_win,
+                'points_loss': points_loss
+            }, to=p)
     
     socketio.emit('leaderboard_update', get_leaderboard())
     del games[room]
