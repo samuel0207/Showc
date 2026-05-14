@@ -270,7 +270,22 @@ body {
     align-items: flex-end;
 }
 
+.sprite-box::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 20px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 70%);
+    border-radius: 50%;
+    z-index: 1;
+}
+
 .sprite {
+    position: relative;
+    z-index: 2;
     image-rendering: pixelated;
     transform: scale(2);
     transform-origin: bottom center;
@@ -703,7 +718,7 @@ body {
     }
 
     .pokemon-container {
-        width: 250px;
+        width: calc(100% - 20px);
     }
 
     .player {
