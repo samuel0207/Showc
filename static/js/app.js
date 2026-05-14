@@ -82,13 +82,8 @@ const dom = {
     showRegisterBtn: document.getElementById('show-register'),
     showLoginBtn: document.getElementById('show-login'),
     
-    verifyModal: document.getElementById('verify-modal'),
-    verifyMsg: document.getElementById('verify-msg'),
-    verifyCodeInput: document.getElementById('verify-code-input'),
-    verifyBtn: document.getElementById('verify-btn'),
-    verifyError: document.getElementById('verify-error'),
-    verifyCloseBtn: document.getElementById('btn-close-verify'),
     
+
     scoreDisplay: document.getElementById('player-score'),
     loggedUser: document.getElementById('logged-user'),
     leaderboardList: document.getElementById('leaderboard-list'),
@@ -186,28 +181,7 @@ socket.on('login_error', (data) => {
     localStorage.removeItem('poke_pass');
 });
 
-socket.on('verification_required', (data) => {
-    dom.loginError.innerText = "";
-    dom.registerError.innerText = "";
-    dom.verifyMsg.innerText = data.msg;
-    dom.verifyCodeInput.value = "";
-    dom.verifyError.innerText = "";
-    dom.verifyModal.classList.add('active');
-});
-
-dom.verifyBtn.onclick = () => {
-    const code = dom.verifyCodeInput.value.trim();
-    if(code) {
-        socket.emit('verify_code', {code: code});
-    }
-};
-
-dom.verifyCloseBtn.onclick = () => {
-    dom.verifyModal.classList.remove('active');
-};
-
 socket.on('login_success', (data) => {
-    if(dom.verifyModal) dom.verifyModal.classList.remove('active');
     
     username = data.username;
     playerScore = data.score;

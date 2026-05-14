@@ -40,7 +40,6 @@ def index():
 waiting_players = []
 sid_to_user = {}
 games = {}
-pending_verifications = {}
 
 @socketio.on('login')
 def handle_login(data):
@@ -96,37 +95,9 @@ def handle_register(data):
         emit('login_error', {'msg': 'Este nome de usuário já está em uso.'})
         return
         
-    # Simula o envio do código via E-mail
-    import random
-    code = str(random.randint(100000, 999999))
-    print(f"\n[E-MAIL SIMULADO] Código {code} gerado para o e-mail {email} (usuário: {username})\n")
-    
-    pending_verifications[request.sid] = {
+    new_user = {
         'username': username,
         'password': password,
-        'email': email,
-        'code': code
-    }
-    
-    emit('verification_required', {'msg': f'Código enviado para {email}'})
-
-@socketio.on('verify_code')
-def handle_verify_code(data):
-    sid = request.sid
-    code = data.get('code')
-    pending = pending_verifications.get(sid)
-    
-    if not pending:
-        emit('login_error', {'msg': 'Nenhuma verificação pendente encontrada.'})
-        return
-        
-    if pending['code'] != code:
-        emit('login_error', {'msg': 'Código de verificação incorreto.'})
-        return
-        
-    user = {
-        'username': pending['username'],
-        'password': pending['password'],
         'score': 1000,
         'team': [],
         'history': [],
@@ -134,22 +105,21 @@ def handle_verify_code(data):
     }
     
     try:
-        upsert_user(user)
+        upsert_user(new_user)
     except Exception as e:
         print(f"[ERRO] Falha ao criar usuário: {e}")
-        emit('login_error', {'msg': 'Erro ao salvar no banco. O RLS está bloqueando?'})
+        emit('login_error', {'msg': 'Erro ao salvar no banco de dados.'})
         return
         
-    del pending_verifications[sid]
-    sid_to_user[sid] = user['username']
+    sid_to_user[request.sid] = new_user['username']
     
     emit('login_success', {
-        'username': user['username'],
-        'score': user['score'],
-        'team': user['team'],
-        'history': user['history'],
-        'usage': user['usage'],
-        'is_admin': (user['username'].lower() == 'admin'),
+        'username': new_user['username'],
+        'score': new_user['score'],
+        'team': new_user['team'],
+        'history': new_user['history'],
+        'usage': new_user['usage'],
+        'is_admin': (new_user['username'].lower() == 'admin'),
         'leaderboard': get_leaderboard()
     })
 
