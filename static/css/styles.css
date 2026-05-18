@@ -228,6 +228,17 @@ body {
     position: relative;
 }
 
+.trainer-name {
+    font-size: 9px;
+    font-weight: bold;
+    color: #4a5d4e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #c0d0c0;
+    padding-bottom: 2px;
+}
+
 .info {
     display: flex;
     justify-content: space-between;

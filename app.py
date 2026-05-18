@@ -213,10 +213,18 @@ def pair_with_bot(sid, username, team):
         'bot_sid': bot_sid
     }
     
+    bot_names = [
+        "Treinador Red", "Rival Blue", "Líder Misty", "Líder Brock", "Líder Lt. Surge", 
+        "Líder Erika", "Líder Sabrina", "Líder Blaine", "Líder Giovanni", "Campeão Lance", 
+        "Campeão Steven", "Campeã Cynthia", "Mestre Ash", "Rival Gary", "Treinadora May",
+        "Treinador Ethan", "Treinador Lyra", "Líder Koga", "Líder Janine", "Líder Falkner"
+    ]
+    bot_name = random.choice(bot_names)
+    
     # Sid receives match found against BOT
     socketio.emit('match_found', {
         'room': room,
-        'opponent': 'Bot Trainer',
+        'opponent': bot_name,
         'opponent_team': bot_team,
         'is_player_one': True
     }, to=sid)

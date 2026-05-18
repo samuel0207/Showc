@@ -108,6 +108,7 @@ const dom = {
     commands: document.getElementById('commands-grid'),
     
     player: {
+        trainer: document.getElementById('player-trainer'),
         name: document.getElementById('player-name'),
         hpBar: document.getElementById('player-hp-bar'),
         hpText: document.getElementById('player-hp-text'),
@@ -117,6 +118,7 @@ const dom = {
         teamDots: document.getElementById('player-team-status')
     },
     opponent: {
+        trainer: document.getElementById('opp-trainer'),
         name: document.getElementById('opp-name'),
         hpBar: document.getElementById('opp-hp-bar'),
         sprite: document.getElementById('opp-sprite'),
@@ -489,6 +491,10 @@ socket.on('match_found', async (data) => {
 
     setupPokemonUI(myTeam[myActiveIdx], 'player', myTeam);
     setupPokemonUI(oppTeam[oppActiveIdx], 'opponent', oppTeam);
+    
+    if (dom.player.trainer) dom.player.trainer.innerText = username.toUpperCase();
+    if (dom.opponent.trainer) dom.opponent.trainer.innerText = data.opponent.toUpperCase();
+    
     setupCommands();
 
     logMsg(`Partida encontrada contra ${data.opponent}!`);
