@@ -603,12 +603,38 @@ socket.on('turn_ready', async (actions) => {
 
 async function performAttack(attacker, defender, move, defSide) {
     logMsg(`${attacker.name.toUpperCase()} usou ${move.name}!`);
-    await sleep(800);
+    
+    const attackerSide = (defSide === 'opponent') ? 'player' : 'opponent';
+    const attackerSpriteBox = document.querySelector(`.pokemon-container.${attackerSide} .sprite-box`);
+    const defenderSpriteBox = document.querySelector(`.pokemon-container.${defSide} .sprite-box`);
+
+    if (attackerSpriteBox) {
+        attackerSpriteBox.classList.add(`attack-${attackerSide}`);
+        setTimeout(() => attackerSpriteBox.classList.remove(`attack-${attackerSide}`), 400);
+    }
+
+    await sleep(250);
+
+    if (defenderSpriteBox) {
+        const effectDiv = document.createElement('div');
+        let effType = 'normal';
+        if (['fire', 'water', 'electric', 'grass'].includes(move.type)) {
+            effType = move.type;
+        }
+        effectDiv.className = `battle-effect effect-${effType}`;
+        defenderSpriteBox.appendChild(effectDiv);
+        setTimeout(() => effectDiv.remove(), 400);
+
+        defenderSpriteBox.classList.add('hit-shake');
+        setTimeout(() => defenderSpriteBox.classList.remove('hit-shake'), 400);
+    }
 
     const result = calculateDamage(attacker, defender, move);
     defender.takeDamage(result.damage);
     showDamage(result.damage, defSide);
     updateHpBar(defender, defSide);
+
+    await sleep(550);
 
     if (result.effectiveness > 1) { logMsg("É super efetivo!"); await sleep(800); }
     else if (result.effectiveness < 1 && result.effectiveness > 0) { logMsg("Não é muito efetivo..."); await sleep(800); }

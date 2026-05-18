@@ -273,11 +273,11 @@ body {
 .sprite-box::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 20px;
+    width: 90px;
+    height: 24px;
     background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 70%);
     border-radius: 50%;
     z-index: 1;
@@ -287,7 +287,7 @@ body {
     position: relative;
     z-index: 2;
     image-rendering: pixelated;
-    transform: scale(2);
+    transform: scale(2.8);
     transform-origin: bottom center;
 }
 
@@ -737,7 +737,13 @@ body {
     }
 
     .sprite {
-        transform: scale(1.5);
+        transform: scale(2);
+    }
+
+    .sprite-box::after {
+        width: 70px;
+        height: 18px;
+        bottom: -5px;
     }
 
     .status-box {
@@ -774,4 +780,89 @@ body {
         width: 40px;
         height: 40px;
     }
+}
+
+/* --- ANIMAÇÕES E EFEITOS ESPECIAIS --- */
+.attack-player {
+    animation: anim-attack-player 0.4s ease-in-out;
+}
+.attack-opponent {
+    animation: anim-attack-opponent 0.4s ease-in-out;
+}
+
+@keyframes anim-attack-player {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(60px, -40px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes anim-attack-opponent {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-60px, 40px); }
+    100% { transform: translate(0, 0); }
+}
+
+.hit-shake {
+    animation: anim-hit-shake 0.4s ease-in-out;
+}
+
+@keyframes anim-hit-shake {
+    0% { transform: translate(0, 0); filter: brightness(1); }
+    15% { transform: translate(-12px, 0); filter: brightness(0.3) sepia(1) saturate(8) hue-rotate(-50deg); }
+    30% { transform: translate(12px, 0); filter: brightness(0.3) sepia(1) saturate(8) hue-rotate(-50deg); }
+    45% { transform: translate(-12px, 0); filter: brightness(0.3) sepia(1) saturate(8) hue-rotate(-50deg); }
+    60% { transform: translate(12px, 0); filter: brightness(0.3) sepia(1) saturate(8) hue-rotate(-50deg); }
+    75% { transform: translate(-6px, 0); filter: brightness(1); }
+    100% { transform: translate(0, 0); filter: brightness(1); }
+}
+
+/* Efeitos Especiais de Tipos de Golpes */
+.battle-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 100;
+    width: 0px;
+    height: 0px;
+    border-radius: 50%;
+}
+
+.effect-fire {
+    background: radial-gradient(circle, #ff4500 10%, #ff8c00 40%, transparent 70%);
+    animation: anim-effect-burst 0.4s ease-out forwards;
+}
+
+.effect-water {
+    background: radial-gradient(circle, #1e90ff 10%, #00bfff 40%, transparent 70%);
+    animation: anim-effect-burst 0.4s ease-out forwards;
+}
+
+.effect-electric {
+    background: radial-gradient(circle, #ffff00 10%, #ffd700 40%, transparent 70%);
+    animation: anim-effect-flash 0.4s ease-out forwards;
+}
+
+.effect-grass {
+    background: radial-gradient(circle, #32cd32 10%, #228b22 40%, transparent 70%);
+    animation: anim-effect-burst 0.4s ease-out forwards;
+}
+
+.effect-normal {
+    background: radial-gradient(circle, #ffffff 10%, #dcdcdc 40%, transparent 70%);
+    animation: anim-effect-burst 0.3s ease-out forwards;
+}
+
+@keyframes anim-effect-burst {
+    0% { width: 0px; height: 0px; opacity: 1; }
+    100% { width: 150px; height: 150px; opacity: 0; }
+}
+
+@keyframes anim-effect-flash {
+    0% { width: 0px; height: 0px; opacity: 1; }
+    25% { opacity: 0.2; }
+    50% { opacity: 1; }
+    75% { opacity: 0.2; }
+    100% { width: 150px; height: 150px; opacity: 0; }
 }
